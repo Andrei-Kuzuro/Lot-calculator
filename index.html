@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#0d0d0d">
+<title>Lot Calculator</title>
+<style>
+:root{--bg:#0d0d0d;--card:#181818;--field:#101010;--border:#2b2b2b;--gold:#ffd700;--muted:#888}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body{display:flex;justify-content:center;padding:10px}
+.app{width:min(100%,430px);background:var(--card);border:1px solid #262626;border-radius:14px;padding:14px;min-height:calc(100vh - 20px)}
+h1{font-size:18px;margin:0 0 2px;color:var(--gold)}
+.sub{font-size:11px;color:var(--muted);margin:0 0 10px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.field{margin-bottom:7px}
+label{display:block;font-size:9px;color:#777;text-transform:uppercase;letter-spacing:.35px;margin:0 0 3px}
+input,select{width:100%;height:38px;background:var(--field);border:1px solid #303030;border-radius:7px;color:#fff;font-size:14px;padding:0 9px;outline:none}
+input:focus,select:focus{border-color:var(--gold)}
+select optgroup{background:#181818;color:#ffd700;font-weight:700}
+select option{background:#101010;color:#fff}
+.hint{font-size:9px;color:#555;margin-top:3px}
+button.calc{width:100%;height:40px;margin-top:2px;border:0;border-radius:7px;background:var(--gold);color:#000;font-size:14px;font-weight:700}
+.results{display:none;border-top:1px solid #292929;margin-top:10px;padding-top:10px}
+.results.show{display:block}
+.results-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.box{background:#101010;border:1px solid #292929;border-radius:8px;padding:7px;text-align:center}
+.box.main{border-color:var(--gold);background:#181500}
+.rlabel{font-size:8px;color:#666;text-transform:uppercase;margin-bottom:2px}
+.rvalue{font-size:17px;font-weight:600}
+.main .rvalue{font-size:21px;color:var(--gold)}
+.warning{display:none;margin-top:6px;padding:7px;border:1px solid #ff8c00;border-radius:7px;color:#ff9a00;background:#241500;font-size:10px}
+.warning.show{display:block}
+kbdbar{display:none}
+@media(max-width:600px){
+  body{padding:0;align-items:flex-start}
+  .app{border:0;border-radius:0;min-height:100vh;padding:10px 11px 12px}
+}
+.keyboard{position:fixed;left:0;right:0;bottom:0;background:#171717;border-top:1px solid #333;padding:5px max(6px,env(safe-area-inset-left)) calc(5px + env(safe-area-inset-bottom));height:25vh;max-height:220px;display:none;z-index:20}
+.keyboard.active{display:block}
+.kb-top{height:24px;display:flex;justify-content:flex-end;margin-bottom:4px}
+.done{background:#303030;color:#fff;border:0;border-radius:6px;padding:0 14px;font-size:13px;font-weight:600}
+.keys{height:calc(100% - 28px);display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(4,1fr);gap:4px}
+.key{border:1px solid #353535;border-radius:6px;background:#252525;color:#fff;font-size:clamp(16px,5vw,22px);font-weight:500}
+.key:active{background:#444}
+.key.action{font-size:15px}
+.field.active input{border-color:var(--gold)}
+@media(min-width:601px){.keyboard{display:none!important}}
+</style>
+</head>
+<body>
+<main class="app">
+  <h1>Калькулятор позиции</h1>
+  <p class="sub">Введи параметры — получи размер лота</p>
+
+  <div class="field">
+    <label>Инструмент</label>
+    <select id="instrument">
+      <optgroup label="КРИПТОАКТИВЫ">
+        <option value="btcusd">BTCUSD</option>
+        <option value="ethusd">ETHUSD</option>
+      </optgroup>
+      <optgroup label="ДРАГОЦЕННЫЕ МЕТАЛЛЫ">
+        <option value="xauusd">Золото (XAUUSD)</option>
+      </optgroup>
+      <optgroup label="ИНДЕКСЫ">
+        <option value="usspx500">USSPX500</option>
+        <option value="japan225">JAPAN225</option>
+        <option value="germany40">GERMANY40</option>
+        <option value="us100">US100</option>
+        <option value="ger40">GER40</option>
+      </optgroup>
+      <optgroup label="ВАЛЮТНЫЕ ПАРЫ — USD">
+        <option value="usdcad">USDCAD</option><option value="usdchf">USDCHF</option>
+        <option value="usdsgd">USDSGD</option><option value="usdsek">USDSEK</option>
+        <option value="usdnok">USDNOK</option><option value="usdjpy">USDJPY</option>
+        <option value="usdtry">USDTRY</option><option value="usdzar">USDZAR</option>
+        <option value="usdaed">USDAED</option>
+      </optgroup>
+      <optgroup label="ВАЛЮТНЫЕ ПАРЫ — EUR">
+        <option value="euraud">EURAUD</option><option value="eurcad">EURCAD</option>
+        <option value="eurchf">EURCHF</option><option value="eurgbp">EURGBP</option>
+        <option value="eurjpy">EURJPY</option><option value="eurnzd">EURNZD</option>
+        <option value="eurusd">EURUSD</option>
+      </optgroup>
+      <optgroup label="ВАЛЮТНЫЕ ПАРЫ — GBP">
+        <option value="gbpaud">GBPAUD</option><option value="gbpcad">GBPCAD</option>
+        <option value="gbpchf">GBPCHF</option><option value="gbpjpy">GBPJPY</option>
+        <option value="gbpnzd">GBPNZD</option><option value="gbpusd">GBPUSD</option>
+      </optgroup>
+      <optgroup label="ВАЛЮТНЫЕ ПАРЫ — AUD / NZD">
+        <option value="audusd">AUDUSD</option><option value="audcad">AUDCAD</option>
+        <option value="audchf">AUDCHF</option><option value="audjpy">AUDJPY</option>
+        <option value="audnzd">AUDNZD</option><option value="nzdjpy">NZDJPY</option>
+        <option value="nzdusd">NZDUSD</option><option value="nzdcad">NZDCAD</option>
+      </optgroup>
+      <optgroup label="ВАЛЮТНЫЕ ПАРЫ — CAD / CHF">
+        <option value="cadjpy">CADJPY</option><option value="cadchf">CADCHF</option>
+        <option value="cadusd">CADUSD</option><option value="chfjpy">CHFJPY</option>
+        <option value="chfusd">CHFUSD</option>
+      </optgroup>
+      <optgroup label="ВАЛЮТНЫЕ ПАРЫ — CROSS / EXOTIC">
+        <option value="gbpnzd">GBPNZD</option><option value="audchf">AUDCHF</option>
+      </optgroup>    </select>
+    <div class="hint">Используется только встроенная клавиатура калькулятора. Системная клавиатура iPhone не вызывается.</div>
+  </div>
+
+  <div class="grid2">
+    <div class="field"><label>Депозит ($)</label><input id="deposit" readonly inputmode="none" value="1000"></div>
+    <div class="field"><label>Риск (%)</label><input id="risk" readonly inputmode="none" value="2"></div>
+  </div>
+  <div class="grid2">
+    <div class="field"><label>Цена входа</label><input id="entry" readonly inputmode="none" placeholder="1.33900"></div>
+    <div class="field"><label>Цена стопа</label><input id="stop" readonly inputmode="none" placeholder="1.34576"></div>
+  </div>
+
+  <button class="calc" onclick="calculate()">Рассчитать лот</button>
+
+  <section class="results" id="results">
+    <div class="results-grid">
+      <div class="box"><div class="rlabel">Сумма риска</div><div class="rvalue" id="riskAmount">—</div></div>
+      <div class="box"><div class="rlabel">До стопа</div><div class="rvalue" id="pips">—</div></div>
+      <div class="box"><div class="rlabel">Цена пункта</div><div class="rvalue" id="pipValue">—</div></div>
+      <div class="box main"><div class="rlabel">Размер лота</div><div class="rvalue" id="lotSize">—</div></div>
+    </div>
+    <div class="warning" id="warning"></div>
+  </section>
+</main>
+
+<div class="keyboard" id="keyboard">
+  <div class="kb-top"><button class="done" onclick="hideKeyboard()">Готово</button></div>
+  <div class="keys">
+    <button class="key" onclick="key('1')">1</button><button class="key" onclick="key('2')">2</button><button class="key" onclick="key('3')">3</button>
+    <button class="key" onclick="key('4')">4</button><button class="key" onclick="key('5')">5</button><button class="key" onclick="key('6')">6</button>
+    <button class="key" onclick="key('7')">7</button><button class="key" onclick="key('8')">8</button><button class="key" onclick="key('9')">9</button>
+    <button class="key action" onclick="key('.')">.</button><button class="key" onclick="key('0')">0</button><button class="key action" onclick="backspace()">⌫</button>
+  </div>
+</div>
+
+<script>
+const instruments={
+  btcusd:{pipSize:1,pipValue:1,unit:'$'}, ethusd:{pipSize:1,pipValue:1,unit:'$'},
+  eurusd:{pipSize:.0001,pipValue:10,unit:'пп'},gbpusd:{pipSize:.0001,pipValue:10,unit:'пп'},
+  audusd:{pipSize:.0001,pipValue:10,unit:'пп'},nzdusd:{pipSize:.0001,pipValue:10,unit:'пп'},
+  usdcad:{pipSize:.0001,pipValue:7.3,unit:'пп'},usdchf:{pipSize:.0001,pipValue:11,unit:'пп'},
+  usdjpy:{pipSize:.01,pipValue:6.7,unit:'пп'},usdnok:{pipSize:.0001,pipValue:10.5,unit:'пп'},
+  usdsek:{pipSize:.0001,pipValue:9.6,unit:'пп'},usdsgd:{pipSize:.0001,pipValue:7.8,unit:'пп'},
+  eurgbp:{pipSize:.0001,pipValue:13,unit:'пп'},eurjpy:{pipSize:.01,pipValue:6.7,unit:'пп'},
+  eurchf:{pipSize:.0001,pipValue:11,unit:'пп'},euraud:{pipSize:.0001,pipValue:6.7,unit:'пп'},
+  eurnzd:{pipSize:.0001,pipValue:6.1,unit:'пп'},eurcad:{pipSize:.0001,pipValue:7.3,unit:'пп'},
+  gbpjpy:{pipSize:.01,pipValue:6.7,unit:'пп'},gbpchf:{pipSize:.0001,pipValue:11,unit:'пп'},
+  gbpaud:{pipSize:.0001,pipValue:6.7,unit:'пп'},gbpcad:{pipSize:.0001,pipValue:7.3,unit:'пп'},
+  gbpnzd:{pipSize:.0001,pipValue:6.1,unit:'пп'},audjpy:{pipSize:.01,pipValue:6.7,unit:'пп'},
+  audcad:{pipSize:.0001,pipValue:7.3,unit:'пп'},audnzd:{pipSize:.0001,pipValue:6.1,unit:'пп'},
+  audchf:{pipSize:.0001,pipValue:10,unit:'пп'},nzdjpy:{pipSize:.01,pipValue:6.7,unit:'пп'},
+  nzdcad:{pipSize:.0001,pipValue:7.3,unit:'пп'},cadjpy:{pipSize:.01,pipValue:6.7,unit:'пп'},
+  cadchf:{pipSize:.0001,pipValue:10,unit:'пп'},cadusd:{pipSize:.0001,pipValue:10,unit:'пп'},
+  chfjpy:{pipSize:.01,pipValue:6.7,unit:'пп'},chfusd:{pipSize:.0001,pipValue:10,unit:'пп'},
+  usdtry:{pipSize:.0001,pipValue:2.8,unit:'пп'},usdzar:{pipSize:.0001,pipValue:5.5,unit:'пп'},
+  usdaed:{pipSize:.0001,pipValue:10,unit:'пп'},xauusd:{pipSize:.01,pipValue:1,unit:'пт'},
+  ger40:{pipSize:1,pipValue:1,unit:'пт'},usspx500:{pipSize:1,pipValue:1,unit:'пт'},
+  japan225:{pipSize:1,pipValue:1,unit:'пт'},germany40:{pipSize:1,pipValue:1,unit:'пт'},
+  us100:{pipSize:1,pipValue:1,unit:'пт'}
+};
+let activeInput=null;
+document.querySelectorAll('input').forEach(inp=>{
+  inp.addEventListener('focus',()=>{activeInput=inp;document.getElementById('keyboard').classList.add('active');});
+  inp.addEventListener('click',()=>{activeInput=inp;document.getElementById('keyboard').classList.add('active');});
+  inp.addEventListener('keydown',e=>e.preventDefault());
+  inp.addEventListener('beforeinput',e=>e.preventDefault());
+});
+function key(v){
+  if(!activeInput)return;
+  if(v==='.'&&activeInput.value.includes('.'))return;
+  activeInput.value+=v;
+  activeInput.dispatchEvent(new Event('input',{bubbles:true}));
+}
+function backspace(){if(activeInput)activeInput.value=activeInput.value.slice(0,-1)}
+function hideKeyboard(){document.getElementById('keyboard').classList.remove('active');if(activeInput)activeInput.blur();activeInput=null}
+function num(id){return parseFloat(document.getElementById(id).value.replace(',','.'))}
+function calculate(){
+  hideKeyboard();
+  const instrument=document.getElementById('instrument').value;
+  const deposit=num('deposit'),riskPct=num('risk'),entry=num('entry'),stop=num('stop');
+  if(!deposit||deposit<=0)return alert('Введи размер депозита');
+  if(!riskPct||riskPct<=0)return alert('Введи процент риска');
+  if(!entry||entry<=0)return alert('Введи цену входа');
+  if(!stop||stop<=0)return alert('Введи цену стопа');
+  if(Math.abs(entry-stop)<1e-12)return alert('Вход и стоп не могут быть одинаковыми');
+  const inst=instruments[instrument],riskAmount=deposit*riskPct/100;
+  const pips=Math.abs(entry-stop)/inst.pipSize,lot=riskAmount/(pips*inst.pipValue);
+  riskAmountEl.textContent='$'+riskAmount.toFixed(2);
+  pipsEl.textContent=pips.toFixed(2)+' '+inst.unit;
+  pipValueEl.textContent='$'+inst.pipValue.toFixed(2);
+  lotSizeEl.textContent=lot.toFixed(4);
+  const w=warningEl;
+  if(lot<.001){w.textContent='⚠️ Слишком маленький лот — уменьши стоп или увеличь депозит';w.classList.add('show')}
+  else if(lot>10){w.textContent='⚠️ Очень большой лот — проверь правильность данных';w.classList.add('show')}
+  else w.classList.remove('show');
+  document.getElementById('results').classList.add('show');
+}
+const riskAmountEl=document.getElementById('riskAmount'),pipsEl=document.getElementById('pips'),pipValueEl=document.getElementById('pipValue'),lotSizeEl=document.getElementById('lotSize'),warningEl=document.getElementById('warning');
+document.addEventListener('keydown',e=>{if(e.key==='Enter')calculate()});
+</script>
+</body>
+</html>
