@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0d0d0d">
 <title>Lot Calculator</title>
 <style>
@@ -16,8 +16,8 @@ h1{font-size:18px;margin:0 0 2px;color:var(--gold)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
 .field{margin-bottom:7px}
 label{display:block;font-size:9px;color:#777;text-transform:uppercase;letter-spacing:.35px;margin:0 0 3px}
-input,select{touch-action:manipulation;width:100%;height:38px;background:var(--field);border:1px solid #303030;border-radius:7px;color:#fff;font-size:14px;padding:0 9px;outline:none}
-input:focus,select:focus{border-color:var(--gold)}
+input,select{touch-action:manipulation;width:100%;height:38px;background:var(--field);border:1px solid #303030;border-radius:7px;color:#fff;font-size:16px;padding:0 9px;outline:none}
+input:focus,select:focus{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold);caret-color:var(--gold)}
 select optgroup{background:#181818;color:#ffd700;font-weight:700}
 select option{background:#101010;color:#fff}
 .hint{font-size:9px;color:#555;margin-top:3px}
@@ -37,16 +37,7 @@ kbdbar{display:none}
   body{padding:0;align-items:flex-start}
   .app{border:0;border-radius:0;min-height:100vh;padding:10px 11px 12px}
 }
-.keyboard{position:fixed;left:0;right:0;bottom:0;background:#171717;border-top:1px solid #333;padding:6px max(7px,env(safe-area-inset-left)) calc(6px + env(safe-area-inset-bottom));height:28.75vh;max-height:250px;display:none;z-index:20}
-.keyboard.active{display:block}
-.kb-top{height:24px;display:flex;justify-content:flex-end;margin-bottom:4px}
-.done{touch-action:manipulation;background:#303030;color:#fff;border:0;border-radius:6px;padding:0 14px;font-size:13px;font-weight:600}
-.keys{height:calc(100% - 28px);display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(4,1fr);gap:6px}
-.key{touch-action:manipulation;border:1px solid #353535;border-radius:6px;background:#252525;color:#fff;font-size:clamp(16px,5vw,22px);font-weight:500}
-.key:active{background:#444}
-.key.action{font-size:15px}
-.field.active input{border-color:var(--gold)}
-@media(min-width:601px){.keyboard{display:none!important}}
+
 </style>
 </head>
 <body>
@@ -103,7 +94,7 @@ kbdbar{display:none}
       <optgroup label="ВАЛЮТНЫЕ ПАРЫ — CROSS / EXOTIC">
         <option value="gbpnzd">GBPNZD</option><option value="audchf">AUDCHF</option>
       </optgroup>    </select>
-    <div class="hint">Используется только встроенная клавиатура калькулятора. Системная клавиатура iPhone не вызывается.</div>
+    <div class="hint">Используется стандартная клавиатура iPhone. Запятая автоматически заменяется на точку.</div>
   </div>
 
   <div class="grid2">
@@ -128,67 +119,52 @@ kbdbar{display:none}
   </section>
 </main>
 
-<div class="keyboard" id="keyboard">
-  <div class="kb-top"><button class="done" onclick="hideKeyboard()">Готово</button></div>
-  <div class="keys">
-    <button class="key" onclick="key('1')">1</button><button class="key" onclick="key('2')">2</button><button class="key" onclick="key('3')">3</button>
-    <button class="key" onclick="key('4')">4</button><button class="key" onclick="key('5')">5</button><button class="key" onclick="key('6')">6</button>
-    <button class="key" onclick="key('7')">7</button><button class="key" onclick="key('8')">8</button><button class="key" onclick="key('9')">9</button>
-    <button class="key action" onclick="key('.')">.</button><button class="key" onclick="key('0')">0</button><button class="key action" onclick="backspace()">⌫</button>
-  </div>
-</div>
-
 <script>
-let lastTouchEnd = 0;
-document.addEventListener('touchend', function(e){
-  const now = Date.now();
-  if (now - lastTouchEnd <= 300) e.preventDefault();
-  lastTouchEnd = now;
-}, {passive:false});
+// Native iPhone keyboard is used.
+// Comma from Russian/European keyboard is normalized to a dot.
+// Paste is supported. Inputs are 16px+ to prevent Safari auto-zoom.
+document.querySelectorAll('input').forEach(function(input) {
+  input.addEventListener('input', function() {
+    const oldValue = input.value;
+    const normalized = oldValue.replace(/,/g, '.');
+    if (normalized !== oldValue) {
+      const pos = input.selectionStart;
+      input.value = normalized;
+      if (pos !== null) input.setSelectionRange(pos, pos);
+    }
+  });
+
+  input.addEventListener('beforeinput', function(e) {
+    // Some iOS keyboards send comma through beforeinput. Convert it before insertion.
+    if (e.data && e.data.includes(',')) {
+      e.preventDefault();
+      const replacement = e.data.replace(/,/g, '.');
+      const start = input.selectionStart ?? input.value.length;
+      const end = input.selectionEnd ?? start;
+      input.setRangeText(replacement, start, end, 'end');
+      input.dispatchEvent(new Event('input', {bubbles:true}));
+    }
+  });
+
+  input.addEventListener('paste', function() {
+    setTimeout(function() {
+      const normalized = input.value.replace(/,/g, '.');
+      if (input.value !== normalized) input.value = normalized;
+    }, 0);
+  });
+
+  input.addEventListener('focus', function() {
+    input.classList.add('is-active');
+  });
+  input.addEventListener('blur', function() {
+    input.classList.remove('is-active');
+  });
+});
+
+// Prevent browser gesture zoom while keeping native text editing/cursor/paste.
 document.addEventListener('gesturestart', e => e.preventDefault(), {passive:false});
 document.addEventListener('gesturechange', e => e.preventDefault(), {passive:false});
 document.addEventListener('gestureend', e => e.preventDefault(), {passive:false});
-
-const instruments={
-  btcusd:{pipSize:1,pipValue:1,unit:'$'}, ethusd:{pipSize:1,pipValue:1,unit:'$'},
-  eurusd:{pipSize:.0001,pipValue:10,unit:'пп'},gbpusd:{pipSize:.0001,pipValue:10,unit:'пп'},
-  audusd:{pipSize:.0001,pipValue:10,unit:'пп'},nzdusd:{pipSize:.0001,pipValue:10,unit:'пп'},
-  usdcad:{pipSize:.0001,pipValue:7.3,unit:'пп'},usdchf:{pipSize:.0001,pipValue:11,unit:'пп'},
-  usdjpy:{pipSize:.01,pipValue:6.7,unit:'пп'},usdnok:{pipSize:.0001,pipValue:10.5,unit:'пп'},
-  usdsek:{pipSize:.0001,pipValue:9.6,unit:'пп'},usdsgd:{pipSize:.0001,pipValue:7.8,unit:'пп'},
-  eurgbp:{pipSize:.0001,pipValue:13,unit:'пп'},eurjpy:{pipSize:.01,pipValue:6.7,unit:'пп'},
-  eurchf:{pipSize:.0001,pipValue:11,unit:'пп'},euraud:{pipSize:.0001,pipValue:6.7,unit:'пп'},
-  eurnzd:{pipSize:.0001,pipValue:6.1,unit:'пп'},eurcad:{pipSize:.0001,pipValue:7.3,unit:'пп'},
-  gbpjpy:{pipSize:.01,pipValue:6.7,unit:'пп'},gbpchf:{pipSize:.0001,pipValue:11,unit:'пп'},
-  gbpaud:{pipSize:.0001,pipValue:6.7,unit:'пп'},gbpcad:{pipSize:.0001,pipValue:7.3,unit:'пп'},
-  gbpnzd:{pipSize:.0001,pipValue:6.1,unit:'пп'},audjpy:{pipSize:.01,pipValue:6.7,unit:'пп'},
-  audcad:{pipSize:.0001,pipValue:7.3,unit:'пп'},audnzd:{pipSize:.0001,pipValue:6.1,unit:'пп'},
-  audchf:{pipSize:.0001,pipValue:10,unit:'пп'},nzdjpy:{pipSize:.01,pipValue:6.7,unit:'пп'},
-  nzdcad:{pipSize:.0001,pipValue:7.3,unit:'пп'},cadjpy:{pipSize:.01,pipValue:6.7,unit:'пп'},
-  cadchf:{pipSize:.0001,pipValue:10,unit:'пп'},cadusd:{pipSize:.0001,pipValue:10,unit:'пп'},
-  chfjpy:{pipSize:.01,pipValue:6.7,unit:'пп'},chfusd:{pipSize:.0001,pipValue:10,unit:'пп'},
-  usdtry:{pipSize:.0001,pipValue:2.8,unit:'пп'},usdzar:{pipSize:.0001,pipValue:5.5,unit:'пп'},
-  usdaed:{pipSize:.0001,pipValue:10,unit:'пп'},xauusd:{pipSize:.01,pipValue:1,unit:'пт'},
-  ger40:{pipSize:1,pipValue:1,unit:'пт'},usspx500:{pipSize:1,pipValue:1,unit:'пт'},
-  japan225:{pipSize:1,pipValue:1,unit:'пт'},germany40:{pipSize:1,pipValue:1,unit:'пт'},
-  us100:{pipSize:1,pipValue:1,unit:'пт'}
-};
-let activeInput=null;
-document.querySelectorAll('input').forEach(inp=>{
-  inp.addEventListener('focus',()=>{activeInput=inp;document.getElementById('keyboard').classList.add('active');});
-  inp.addEventListener('click',()=>{activeInput=inp;document.getElementById('keyboard').classList.add('active');});
-  inp.addEventListener('keydown',e=>e.preventDefault());
-  inp.addEventListener('beforeinput',e=>e.preventDefault());
-});
-function key(v){
-  if(!activeInput)return;
-  if(v==='.'&&activeInput.value.includes('.'))return;
-  activeInput.value+=v;
-  activeInput.dispatchEvent(new Event('input',{bubbles:true}));
-}
-function backspace(){if(activeInput)activeInput.value=activeInput.value.slice(0,-1)}
-function hideKeyboard(){document.getElementById('keyboard').classList.remove('active');if(activeInput)activeInput.blur();activeInput=null}
-function num(id){return parseFloat(document.getElementById(id).value.replace(',','.'))}
 function calculate(){
   hideKeyboard();
   const instrument=document.getElementById('instrument').value;
