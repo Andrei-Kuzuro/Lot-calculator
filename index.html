@@ -20,47 +20,53 @@
       --error: #ff4444; 
       --long: #00c853; 
       --short: #ff1744;
-      --safe-top: env(safe-area-inset-top, 0px);
-      --safe-bottom: env(safe-area-inset-bottom, 0px);
-      --safe-left: env(safe-area-inset-left, 0px);
-      --safe-right: env(safe-area-inset-right, 0px);
     }
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    * { 
+      box-sizing: border-box; 
+      -webkit-tap-highlight-color: transparent;
+      margin: 0;
+      padding: 0;
+    }
     html { 
-      height: 100%; 
+      height: 100%;
+      width: 100%;
       -webkit-text-size-adjust: 100%;
+      overflow: hidden;
     }
     body { 
-      margin: 0; 
-      min-height: 100%; 
+      width: 100%;
       height: 100%;
+      min-height: 100%;
       background: var(--bg); 
       color: #fff; 
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       display: flex;
       justify-content: center;
       align-items: flex-start;
-      padding: calc(10px + var(--safe-top)) var(--safe-right) calc(10px + var(--safe-bottom)) var(--safe-left);
-      touch-action: manipulation;
-      overscroll-behavior: none;
-      -webkit-overflow-scrolling: touch;
+      padding: 0;
+      overflow: hidden;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
     }
     .app { 
       width: 100%;
       max-width: 430px;
       background: var(--card); 
-      border: 1px solid #262626; 
-      border-radius: 14px; 
-      padding: 14px; 
-      min-height: calc(100vh - 20px - var(--safe-top) - var(--safe-bottom));
+      border-radius: 0;
+      padding: 12px 14px;
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
       display: flex; 
       flex-direction: column;
+      position: relative;
     }
     h1 { 
       font-size: 18px; 
       margin: 0 0 2px; 
       color: var(--gold);
-      padding-top: var(--safe-top);
     }
     .sub { 
       font-size: 11px; 
@@ -135,6 +141,7 @@
       width: 100%; 
       height: 44px; 
       margin-top: 8px; 
+      margin-bottom: 20px;
       border: 0; 
       border-radius: 7px; 
       background: var(--gold); 
@@ -142,7 +149,6 @@
       font-size: 15px; 
       font-weight: 700; 
       cursor: pointer;
-      margin-bottom: var(--safe-bottom);
     }
     button.calc:active { 
       opacity: 0.8; 
@@ -218,35 +224,12 @@
       display: block; 
     }
     
-    /* Специальные стили для iOS standalone режима */
+    /* Адаптация для iPhone */
     @supports (-webkit-touch-callout: none) {
       .app {
         min-height: -webkit-fill-available;
-      }
-    }
-    
-    /* Для маленьких экранов */
-    @media (max-width: 430px) {
-      .app {
-        border-radius: 0;
-        border: none;
-        min-height: calc(100vh - var(--safe-top) - var(--safe-bottom));
-      }
-    }
-    
-    /* Для очень маленьких экранов */
-    @media (max-height: 700px) {
-      .app {
-        padding: 10px;
-      }
-      h1 {
-        font-size: 16px;
-      }
-      .grid2 {
-        gap: 5px;
-      }
-      .field {
-        margin-bottom: 5px;
+        padding-top: max(12px, env(safe-area-inset-top));
+        padding-bottom: max(12px, env(safe-area-inset-bottom));
       }
     }
   </style>
@@ -347,11 +330,9 @@
   </main>
 
   <script>
-    // 1. Вспомогательные функции
     const num = (id) => parseFloat(document.getElementById(id).value.replace(',', '.')) || 0;
     const hideKeyboard = () => { document.activeElement.blur(); };
 
-    // 2. Данные инструментов (pipSize: размер пункта, pipValue: стоимость пункта за 1 стандартный лот в USD)
     const instruments = {
       btcusd: { pipSize: 0.01, pipValue: 1, unit: 'пунктов' },
       ethusd: { pipSize: 0.01, pipValue: 1, unit: 'пунктов' },
@@ -373,9 +354,7 @@
       eurjpy: { pipSize: 0.01, pipValue: 10, unit: 'пипсов' }
     };
 
-    // 3. Обработка ввода (замена запятой на точку)
     document.querySelectorAll('input').forEach(input => {
-      // Загрузка сохраненных значений при старте
       if (input.id === 'deposit' || input.id === 'risk') {
         const saved = localStorage.getItem(input.id);
         if (saved) input.value = saved;
@@ -389,11 +368,9 @@
           this.value = normalized;
           if (pos !== null) this.setSelectionRange(pos, pos);
         }
-        // Сохраняем настройки
         if (this.id === 'deposit' || this.id === 'risk') {
           localStorage.setItem(this.id, this.value);
         }
-        // Убираем ошибку при вводе
         this.classList.remove('input-error');
         document.getElementById('err-' + this.id).classList.remove('show');
       });
@@ -406,12 +383,10 @@
       });
     });
 
-    // Блокировка зума жестами на iOS
     document.addEventListener('gesturestart', e => e.preventDefault(), {passive: false});
     document.addEventListener('gesturechange', e => e.preventDefault(), {passive: false});
     document.addEventListener('gestureend', e => e.preventDefault(), {passive: false});
 
-    // 4. Логика расчета
     function calculate() {
       hideKeyboard();
       clearErrors();
@@ -438,16 +413,14 @@
       const riskAmount = deposit * (riskPct / 100);
       const pips = Math.abs(entry - stop) / inst.pipSize;
       const lot = riskAmount / (pips * inst.pipValue);
-      const isLong = entry > stop; // Если стоп ниже входа, это покупка (Long)
+      const isLong = entry > stop;
 
-      // Вывод результатов
       document.getElementById('direction').innerHTML = `<span class="direction-badge ${isLong ? 'long' : 'short'}">${isLong ? 'LONG' : 'SHORT'}</span>`;
       document.getElementById('riskAmount').textContent = '$' + riskAmount.toFixed(2);
       document.getElementById('pips').textContent = pips.toFixed(1) + ' ' + inst.unit;
       document.getElementById('pipValue').textContent = '$' + (inst.pipValue * lot).toFixed(2);
       document.getElementById('lotSize').textContent = lot.toFixed(3);
 
-      // Предупреждения
       const w = document.getElementById('warning');
       if (lot < 0.001) {
         w.textContent = '⚠️ Слишком маленький лот. Уменьши стоп или увеличь депозит.';
@@ -474,202 +447,6 @@
 
     document.addEventListener('keydown', e => { if (e.key === 'Enter') calculate(); });
 
-    // 5. Регистрация Service Worker для PWA
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration failed', err));
-      });
-    }
-  </script>
-</body>
-</html>      </select>
-      <div class="hint">Используй клавиатуру с точкой. Запятая заменится автоматически.</div>
-    </div>
-
-    <div class="grid2">
-      <div class="field">
-        <label>Депозит ($)</label>
-        <input id="deposit" type="text" inputmode="decimal" placeholder="1000" value="1000">
-        <div class="error-msg" id="err-deposit">Введи корректный депозит</div>
-      </div>
-      <div class="field">
-        <label>Риск (%)</label>
-        <input id="risk" type="text" inputmode="decimal" placeholder="2" value="2">
-        <div class="error-msg" id="err-risk">Введи процент риска</div>
-      </div>
-    </div>
-
-    <div class="grid2">
-      <div class="field">
-        <label>Цена входа</label>
-        <input id="entry" type="text" inputmode="decimal" placeholder="1.0500">
-        <div class="error-msg" id="err-entry">Введи цену входа</div>
-      </div>
-      <div class="field">
-        <label>Цена стопа</label>
-        <input id="stop" type="text" inputmode="decimal" placeholder="1.0450">
-        <div class="error-msg" id="err-stop">Введи цену стопа</div>
-      </div>
-    </div>
-
-    <button class="calc" onclick="calculate()">Рассчитать лот</button>
-
-    <section class="results" id="results">
-      <div class="results-grid">
-        <div class="box">
-          <div class="rlabel">Направление</div>
-          <div class="rvalue" id="direction">—</div>
-        </div>
-        <div class="box">
-          <div class="rlabel">Сумма риска</div>
-          <div class="rvalue" id="riskAmount">—</div>
-        </div>
-        <div class="box">
-          <div class="rlabel">До стопа</div>
-          <div class="rvalue" id="pips">—</div>
-        </div>
-        <div class="box">
-          <div class="rlabel">Цена пункта</div>
-          <div class="rvalue" id="pipValue">—</div>
-        </div>
-        <div class="box main">
-          <div class="rlabel">Размер лота</div>
-          <div class="rvalue" id="lotSize">—</div>
-        </div>
-      </div>
-      <div class="warning" id="warning"></div>
-    </section>
-  </main>
-
-  <script>
-    // 1. Вспомогательные функции
-    const num = (id) => parseFloat(document.getElementById(id).value.replace(',', '.')) || 0;
-    const hideKeyboard = () => { document.activeElement.blur(); };
-
-    // 2. Данные инструментов (pipSize: размер пункта, pipValue: стоимость пункта за 1 стандартный лот в USD)
-    const instruments = {
-      btcusd: { pipSize: 0.01, pipValue: 1, unit: 'пунктов' },
-      ethusd: { pipSize: 0.01, pipValue: 1, unit: 'пунктов' },
-      us500: { pipSize: 1, pipValue: 1, unit: 'пунктов' },
-      us100: { pipSize: 1, pipValue: 1, unit: 'пунктов' },
-      ger40: { pipSize: 1, pipValue: 1, unit: 'пунктов' },
-      japan225: { pipSize: 1, pipValue: 1, unit: 'пунктов' },
-      xauusd: { pipSize: 0.01, pipValue: 1, unit: 'пунктов' },
-      xagusd: { pipSize: 0.01, pipValue: 1, unit: 'пунктов' },
-      xptusd: { pipSize: 0.01, pipValue: 1, unit: 'пунктов' },
-      eurusd: { pipSize: 0.0001, pipValue: 10, unit: 'пипсов' },
-      gbpusd: { pipSize: 0.0001, pipValue: 10, unit: 'пипсов' },
-      audusd: { pipSize: 0.0001, pipValue: 10, unit: 'пипсов' },
-      nzdusd: { pipSize: 0.0001, pipValue: 10, unit: 'пипсов' },
-      usdcad: { pipSize: 0.0001, pipValue: 10, unit: 'пипсов' },
-      usdjpy: { pipSize: 0.01, pipValue: 10, unit: 'пипсов' },
-      usdchf: { pipSize: 0.0001, pipValue: 10, unit: 'пипсов' },
-      eurgbp: { pipSize: 0.0001, pipValue: 10, unit: 'пипсов' },
-      eurjpy: { pipSize: 0.01, pipValue: 10, unit: 'пипсов' }
-    };
-
-    // 3. Обработка ввода (замена запятой на точку)
-    document.querySelectorAll('input').forEach(input => {
-      // Загрузка сохраненных значений при старте
-      if (input.id === 'deposit' || input.id === 'risk') {
-        const saved = localStorage.getItem(input.id);
-        if (saved) input.value = saved;
-      }
-
-      input.addEventListener('input', function() {
-        const oldValue = this.value;
-        const normalized = oldValue.replace(/,/g, '.');
-        if (normalized !== oldValue) {
-          const pos = this.selectionStart;
-          this.value = normalized;
-          if (pos !== null) this.setSelectionRange(pos, pos);
-        }
-        // Сохраняем настройки
-        if (this.id === 'deposit' || this.id === 'risk') {
-          localStorage.setItem(this.id, this.value);
-        }
-        // Убираем ошибку при вводе
-        this.classList.remove('input-error');
-        document.getElementById('err-' + this.id).classList.remove('show');
-      });
-
-      input.addEventListener('paste', function() {
-        setTimeout(() => {
-          this.value = this.value.replace(/,/g, '.');
-          if (this.id === 'deposit' || this.id === 'risk') localStorage.setItem(this.id, this.value);
-        }, 0);
-      });
-    });
-
-    // Блокировка зума жестами на iOS
-    document.addEventListener('gesturestart', e => e.preventDefault(), {passive: false});
-    document.addEventListener('gesturechange', e => e.preventDefault(), {passive: false});
-    document.addEventListener('gestureend', e => e.preventDefault(), {passive: false});
-
-    // 4. Логика расчета
-    function calculate() {
-      hideKeyboard();
-      clearErrors();
-
-      const instrumentKey = document.getElementById('instrument').value;
-      const deposit = num('deposit');
-      const riskPct = num('risk');
-      const entry = num('entry');
-      const stop = num('stop');
-
-      let hasError = false;
-      if (!deposit || deposit <= 0) { showError('deposit'); hasError = true; }
-      if (!riskPct || riskPct <= 0) { showError('risk'); hasError = true; }
-      if (!entry || entry <= 0) { showError('entry'); hasError = true; }
-      if (!stop || stop <= 0) { showError('stop'); hasError = true; }
-      
-      if (hasError) return;
-      if (Math.abs(entry - stop) < 1e-12) {
-        alert('Цена входа и стопа не могут быть одинаковыми');
-        return;
-      }
-
-      const inst = instruments[instrumentKey];
-      const riskAmount = deposit * (riskPct / 100);
-      const pips = Math.abs(entry - stop) / inst.pipSize;
-      const lot = riskAmount / (pips * inst.pipValue);
-      const isLong = entry > stop; // Если стоп ниже входа, это покупка (Long)
-
-      // Вывод результатов
-      document.getElementById('direction').innerHTML = `<span class="direction-badge ${isLong ? 'long' : 'short'}">${isLong ? 'LONG' : 'SHORT'}</span>`;
-      document.getElementById('riskAmount').textContent = '$' + riskAmount.toFixed(2);
-      document.getElementById('pips').textContent = pips.toFixed(1) + ' ' + inst.unit;
-      document.getElementById('pipValue').textContent = '$' + (inst.pipValue * lot).toFixed(2);
-      document.getElementById('lotSize').textContent = lot.toFixed(3);
-
-      // Предупреждения
-      const w = document.getElementById('warning');
-      if (lot < 0.001) {
-        w.textContent = '⚠️ Слишком маленький лот. Уменьши стоп или увеличь депозит.';
-        w.classList.add('show');
-      } else if (lot > 10) {
-        w.textContent = '⚠️ Очень большой лот. Проверь правильность введенных данных.';
-        w.classList.add('show');
-      } else {
-        w.classList.remove('show');
-      }
-
-      document.getElementById('results').classList.add('show');
-    }
-
-    function showError(fieldId) {
-      document.getElementById(fieldId).classList.add('input-error');
-      document.getElementById('err-' + fieldId).classList.add('show');
-    }
-
-    function clearErrors() {
-      document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
-      document.querySelectorAll('.error-msg').forEach(el => el.classList.remove('show'));
-    }
-
-    document.addEventListener('keydown', e => { if (e.key === 'Enter') calculate(); });
-
-    // 5. Регистрация Service Worker для PWA
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration failed', err));
