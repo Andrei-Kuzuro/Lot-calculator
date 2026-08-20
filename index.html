@@ -6,353 +6,188 @@
     <title>Калькулятор позиции</title>
     <link rel="manifest" href="manifest.webmanifest">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: #fff;
-            min-height: 100vh;
-            padding: 20px 15px;
-        }
-        
-        .container {
-            max-width: 500px;
+            font-family: Arial, sans-serif;
+            max-width: 600px;
             margin: 0 auto;
+            padding: 20px 15px;
+            color: #333;
+            background-color: #fff;
         }
+        h2 { text-align: center; margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 20px; font-size: 14px; }
         
-        h1 {
-            text-align: center;
-            margin-bottom: 10px;
-            font-size: 28px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-        
-        .subtitle {
-            text-align: center;
-            margin-bottom: 30px;
-            opacity: 0.9;
-            font-size: 16px;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            font-size: 14px;
-        }
-        
-        input, select {
+        label { display: block; margin-top: 15px; font-weight: bold; font-size: 14px; }
+        input {
             width: 100%;
-            padding: 14px;
-            border: 2px solid rgba(255,255,255,0.2);
-            border-radius: 12px;
-            background: rgba(255,255,255,0.95);
-            color: #1a1a1a;
-            font-size: 16px;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-        
-        input:focus, select:focus {
-            outline: none;
-            border-color: #ffd700;
-            box-shadow: 0 0 15px rgba(255,215,0,0.4);
-        }
-        
-        .error input {
-            border-color: #ff4444;
-            background: rgba(255,68,68,0.1);
-        }
-        
-        .error-message {
-            color: #ffd700;
-            font-size: 12px;
+            padding: 10px;
             margin-top: 5px;
-            display: none;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
         }
+        input:focus { outline: none; border-color: #007bff; }
         
-        .error .error-message {
-            display: block;
-        }
-        
-        .instrument-section {
-            background: rgba(255,255,255,0.1);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 15px;
-        }
-        
-        .section-title {
-            font-size: 13px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
-            color: #ffd700;
-            border-bottom: 1px solid rgba(255,215,0,0.3);
-            padding-bottom: 5px;
-        }
-        
-        .instrument-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 8px;
-        }
+        .error input { border-color: #dc3545; background-color: #fff8f8; }
+        .error-message { color: #dc3545; font-size: 12px; margin-top: 4px; display: none; }
+        .error .error-message { display: block; }
+
+        .instrument-group { margin-top: 15px; }
+        .group-title { font-size: 13px; font-weight: bold; color: #555; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 4px; }
         
         .instrument-btn {
-            padding: 10px 8px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 8px;
-            background: rgba(255,255,255,0.15);
-            color: #fff;
-            font-size: 13px;
-            font-weight: 600;
+            padding: 8px 12px;
+            margin: 4px;
+            border: 1px solid #ccc;
+            background: #f8f9fa;
             cursor: pointer;
-            transition: all 0.2s;
-            text-align: center;
+            border-radius: 4px;
+            font-size: 13px;
+            transition: background 0.2s;
         }
-        
-        .instrument-btn:hover {
-            background: rgba(255,255,255,0.25);
-            transform: translateY(-2px);
-        }
-        
-        .instrument-btn.active {
-            background: #ffd700;
-            color: #1a1a1a;
-            border-color: #ffd700;
-            box-shadow: 0 4px 12px rgba(255,215,0,0.4);
-        }
-        
+        .instrument-btn:hover { background: #e2e6ea; }
+        .instrument-btn.active { background: #007bff; color: white; border-color: #007bff; }
+
+        .note { font-size: 12px; color: #666; margin: 15px 0; font-style: italic; }
+
         button.calculate {
             width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-            color: #1a1a1a;
+            padding: 12px;
+            margin-top: 20px;
+            background: #007bff;
+            color: white;
             border: none;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: 700;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
             cursor: pointer;
-            margin-top: 10px;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(255,215,0,0.3);
         }
-        
-        button.calculate:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255,215,0,0.5);
-        }
-        
-        button.calculate:active {
-            transform: translateY(0);
-        }
-        
+        button.calculate:hover { background: #0056b3; }
+
         .results {
-            margin-top: 30px;
-            background: rgba(255,255,255,0.95);
-            border-radius: 12px;
-            padding: 20px;
-            color: #1a1a1a;
+            margin-top: 25px;
+            padding: 15px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
             display: none;
         }
-        
-        .results.show {
-            display: block;
-            animation: slideIn 0.3s ease;
-        }
-        
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .result-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid #e0e0e0;
-        }
-        
-        .result-item:last-child {
-            border-bottom: none;
-        }
-        
-        .result-label {
-            font-weight: 600;
-            color: #555;
-        }
-        
-        .result-value {
-            font-weight: 700;
-            color: #2a5298;
-            font-size: 16px;
-        }
-        
-        .result-value.highlight {
-            color: #ffd700;
-            text-shadow: 0 0 10px rgba(255,215,0,0.3);
-            font-size: 20px;
-        }
+        .results.show { display: block; }
+        .result-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+        .result-row:last-child { border-bottom: none; }
+        .result-label { color: #555; }
+        .result-value { font-weight: bold; color: #007bff; }
+        .result-value.highlight { color: #28a745; font-size: 18px; }
         
         .warning {
-            background: rgba(255,193,7,0.2);
-            border-left: 4px solid #ffc107;
+            margin-top: 10px;
             padding: 10px;
-            margin-top: 15px;
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
             border-radius: 4px;
             font-size: 13px;
             display: none;
         }
-        
-        .warning.show {
-            display: block;
-        }
-        
-        .note {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 12px;
-            opacity: 0.8;
-        }
-        
-        @media (max-width: 480px) {
-            h1 { font-size: 24px; }
-            .instrument-grid { grid-template-columns: repeat(2, 1fr); }
-        }
+        .warning.show { display: block; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>📊 Калькулятор позиции</h1>
-        <p class="subtitle">Введи параметры — получи размер лота</p>
-        
-        <div class="form-group">
-            <label>Инструмент</label>
-            
-            <!-- Криптовалюты -->
-            <div class="instrument-section">
-                <div class="section-title">🪙 Криптовалюты</div>
-                <div class="instrument-grid">
-                    <div class="instrument-btn" data-symbol="BTCUSD" data-pip-size="0.01" data-pip-value="1">BTCUSD</div>
-                    <div class="instrument-btn" data-symbol="ETHUSD" data-pip-size="0.01" data-pip-value="1">ETHUSD</div>
-                </div>
-            </div>
-            
-            <!-- Индексы -->
-            <div class="instrument-section">
-                <div class="section-title">📈 Индексы</div>
-                <div class="instrument-grid">
-                    <div class="instrument-btn" data-symbol="US500" data-pip-size="1" data-pip-value="1">US500 (S&P)</div>
-                    <div class="instrument-btn" data-symbol="US100" data-pip-size="1" data-pip-value="1">US100 (Nasdaq)</div>
-                    <div class="instrument-btn" data-symbol="GER40" data-pip-size="1" data-pip-value="1">GER40 (DAX)</div>
-                    <div class="instrument-btn" data-symbol="JAPAN225" data-pip-size="1" data-pip-value="1">JAPAN225 (Nikkei)</div>
-                </div>
-            </div>
-            
-            <!-- Драгметаллы -->
-            <div class="instrument-section">
-                <div class="section-title">💎 Драгметаллы</div>
-                <div class="instrument-grid">
-                    <div class="instrument-btn" data-symbol="XAUUSD" data-pip-size="0.01" data-pip-value="1">Золото (XAUUSD)</div>
-                    <div class="instrument-btn" data-symbol="XAGUSD" data-pip-size="0.01" data-pip-value="1">Серебро (XAGUSD)</div>
-                    <div class="instrument-btn" data-symbol="XPTUSD" data-pip-size="0.01" data-pip-value="1">Платина (XPTUSD)</div>
-                </div>
-            </div>
-            
-            <!-- Валютные пары -->
-            <div class="instrument-section">
-                <div class="section-title">💱 Валютные пары</div>
-                
-                <div style="margin-bottom: 12px;">
-                    <div style="font-size: 12px; color: #ffd700; margin-bottom: 8px; font-weight: 600;">Основные пары (*USD)</div>
-                    <div class="instrument-grid">
-                        <div class="instrument-btn" data-symbol="EURUSD" data-pip-size="0.0001" data-pip-value="10">EURUSD</div>
-                        <div class="instrument-btn" data-symbol="GBPUSD" data-pip-size="0.0001" data-pip-value="10">GBPUSD</div>
-                        <div class="instrument-btn" data-symbol="AUDUSD" data-pip-size="0.0001" data-pip-value="10">AUDUSD</div>
-                        <div class="instrument-btn" data-symbol="NZDUSD" data-pip-size="0.0001" data-pip-value="10">NZDUSD</div>
-                        <div class="instrument-btn" data-symbol="CHFUSD" data-pip-size="0.0001" data-pip-value="10">CHFUSD</div>
-                    </div>
-                </div>
-                
-                <div>
-                    <div style="font-size: 12px; color: #ffd700; margin-bottom: 8px; font-weight: 600;">Кросс-пары</div>
-                    <div class="instrument-grid">
-                        <div class="instrument-btn" data-symbol="USDCAD" data-pip-size="0.0001" data-pip-value="10">USDCAD</div>
-                        <div class="instrument-btn" data-symbol="USDJPY" data-pip-size="0.01" data-pip-value="10">USDJPY</div>
-                        <div class="instrument-btn" data-symbol="USDCHF" data-pip-size="0.0001" data-pip-value="10">USDCHF</div>
-                        <div class="instrument-btn" data-symbol="EURGBP" data-pip-size="0.0001" data-pip-value="10">EURGBP</div>
-                        <div class="instrument-btn" data-symbol="EURJPY" data-pip-size="0.01" data-pip-value="10">EURJPY</div>
-                    </div>
-                </div>
-            </div>
+
+    <h2>Калькулятор позиции</h2>
+    <p class="subtitle">Введи параметры — получи размер лота</p>
+
+    <label>Инструмент</label>
+    
+    <div class="instrument-group">
+        <div class="group-title">Криптовалюты</div>
+        <button class="instrument-btn" data-symbol="BTCUSD" data-pip-size="0.01" data-pip-value="1">BTCUSD</button>
+        <button class="instrument-btn" data-symbol="ETHUSD" data-pip-size="0.01" data-pip-value="1">ETHUSD</button>
+    </div>
+
+    <div class="instrument-group">
+        <div class="group-title">Индексы</div>
+        <button class="instrument-btn" data-symbol="US500" data-pip-size="1" data-pip-value="1">US500 (S&P)</button>
+        <button class="instrument-btn" data-symbol="US100" data-pip-size="1" data-pip-value="1">US100 (Nasdaq)</button>
+        <button class="instrument-btn" data-symbol="GER40" data-pip-size="1" data-pip-value="1">GER40 (DAX)</button>
+        <button class="instrument-btn" data-symbol="JAPAN225" data-pip-size="1" data-pip-value="1">JAPAN225 (Nikkei)</button>
+    </div>
+
+    <div class="instrument-group">
+        <div class="group-title">Драгметаллы</div>
+        <button class="instrument-btn" data-symbol="XAUUSD" data-pip-size="0.01" data-pip-value="1">Золото (XAUUSD)</button>
+        <button class="instrument-btn" data-symbol="XAGUSD" data-pip-size="0.01" data-pip-value="1">Серебро (XAGUSD)</button>
+        <button class="instrument-btn" data-symbol="XPTUSD" data-pip-size="0.01" data-pip-value="1">Платина (XPTUSD)</button>
+    </div>
+
+    <div class="instrument-group">
+        <div class="group-title">Валютные пары: Основные (*USD)</div>
+        <button class="instrument-btn" data-symbol="EURUSD" data-pip-size="0.0001" data-pip-value="10">EURUSD</button>
+        <button class="instrument-btn" data-symbol="GBPUSD" data-pip-size="0.0001" data-pip-value="10">GBPUSD</button>
+        <button class="instrument-btn" data-symbol="AUDUSD" data-pip-size="0.0001" data-pip-value="10">AUDUSD</button>
+        <button class="instrument-btn" data-symbol="NZDUSD" data-pip-size="0.0001" data-pip-value="10">NZDUSD</button>
+    </div>
+
+    <div class="instrument-group">
+        <div class="group-title">Валютные пары: Кросс-пары</div>
+        <button class="instrument-btn" data-symbol="USDCAD" data-pip-size="0.0001" data-pip-value="10">USDCAD</button>
+        <button class="instrument-btn" data-symbol="USDJPY" data-pip-size="0.01" data-pip-value="10">USDJPY</button>
+        <button class="instrument-btn" data-symbol="USDCHF" data-pip-size="0.0001" data-pip-value="10">USDCHF</button>
+        <button class="instrument-btn" data-symbol="EURGBP" data-pip-size="0.0001" data-pip-value="10">EURGBP</button>
+        <button class="instrument-btn" data-symbol="EURJPY" data-pip-size="0.01" data-pip-value="10">EURJPY</button>
+    </div>
+
+    <p class="note">Используй клавиатуру с точкой. Запятая заменится автоматически.</p>
+
+    <div id="depositGroup">
+        <label>Депозит ($)</label>
+        <input type="text" id="deposit" placeholder="Введи корректный депозит" inputmode="decimal">
+        <div class="error-message">Введи корректный депозит</div>
+    </div>
+
+    <div id="riskGroup">
+        <label>Риск (%)</label>
+        <input type="text" id="risk" placeholder="Введи процент риска" inputmode="decimal">
+        <div class="error-message">Введи процент риска</div>
+    </div>
+
+    <div id="entryGroup">
+        <label>Цена входа</label>
+        <input type="text" id="entryPrice" placeholder="Введи цену входа" inputmode="decimal">
+        <div class="error-message">Введи цену входа</div>
+    </div>
+
+    <div id="stopGroup">
+        <label>Цена стопа</label>
+        <input type="text" id="stopPrice" placeholder="Введи цену стопа" inputmode="decimal">
+        <div class="error-message">Введи цену стопа</div>
+    </div>
+
+    <button class="calculate" onclick="calculateLot()">Рассчитать лот</button>
+
+    <div class="results" id="results">
+        <div class="result-row">
+            <span class="result-label">Направление</span>
+            <span class="result-value" id="direction">—</span>
         </div>
-        
-        <p style="text-align: center; font-size: 12px; opacity: 0.8; margin-bottom: 20px;">
-            Используй клавиатуру с точкой. Запятая заменится автоматически.
-        </p>
-        
-        <div class="form-group" id="depositGroup">
-            <label>Депозит ($)</label>
-            <input type="text" id="deposit" placeholder="Введи корректный депозит" inputmode="decimal">
-            <div class="error-message">Введите корректный депозит</div>
+        <div class="result-row">
+            <span class="result-label">Сумма риска</span>
+            <span class="result-value" id="riskAmount">—</span>
         </div>
-        
-        <div class="form-group" id="riskGroup">
-            <label>Риск (%)</label>
-            <input type="text" id="risk" placeholder="Введи процент риска" inputmode="decimal">
-            <div class="error-message">Введите процент риска</div>
+        <div class="result-row">
+            <span class="result-label">До стопа</span>
+            <span class="result-value" id="stopDistance">—</span>
         </div>
-        
-        <div class="form-group" id="entryGroup">
-            <label>Цена входа</label>
-            <input type="text" id="entryPrice" placeholder="Введи цену входа" inputmode="decimal">
-            <div class="error-message">Введите цену входа</div>
+        <div class="result-row">
+            <span class="result-label">Цена пункта</span>
+            <span class="result-value" id="pipValue">—</span>
         </div>
-        
-        <div class="form-group" id="stopGroup">
-            <label>Цена стопа</label>
-            <input type="text" id="stopPrice" placeholder="Введи цену стопа" inputmode="decimal">
-            <div class="error-message">Введите цену стопа</div>
+        <div class="result-row">
+            <span class="result-label">Размер лота</span>
+            <span class="result-value highlight" id="lotSize">—</span>
         </div>
-        
-        <button class="calculate" onclick="calculateLot()">Рассчитать лот</button>
-        
-        <div class="results" id="results">
-            <div class="result-item">
-                <span class="result-label">Направление</span>
-                <span class="result-value" id="direction">—</span>
-            </div>
-            <div class="result-item">
-                <span class="result-label">Сумма риска</span>
-                <span class="result-value" id="riskAmount">—</span>
-            </div>
-            <div class="result-item">
-                <span class="result-label">До стопа</span>
-                <span class="result-value" id="stopDistance">—</span>
-            </div>
-            <div class="result-item">
-                <span class="result-label">Цена пункта</span>
-                <span class="result-value" id="pipValue">—</span>
-            </div>
-            <div class="result-item">
-                <span class="result-label">Размер лота</span>
-                <span class="result-value highlight" id="lotSize">—</span>
-            </div>
-            <div class="warning" id="warning"></div>
-        </div>
-        
-        <p class="note">PWA-калькулятор • Работает офлайн</p>
+        <div class="warning" id="warning"></div>
     </div>
 
     <script>
@@ -360,14 +195,14 @@
         let selectedPipSize = null;
         let selectedPipValue = null;
 
-        // Auto-replace comma with dot
+        // Автозамена запятой на точку
         document.querySelectorAll('input').forEach(input => {
             input.addEventListener('input', function() {
                 this.value = this.value.replace(/,/g, '.');
             });
         });
 
-        // Instrument selection
+        // Выбор инструмента
         document.querySelectorAll('.instrument-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.instrument-btn').forEach(b => b.classList.remove('active'));
@@ -378,7 +213,7 @@
             });
         });
 
-        // Load saved data
+        // Загрузка сохраненных данных
         window.addEventListener('load', () => {
             const savedDeposit = localStorage.getItem('deposit');
             const savedRisk = localStorage.getItem('risk');
@@ -386,7 +221,7 @@
             if (savedRisk) document.getElementById('risk').value = savedRisk;
         });
 
-        // Save data
+        // Сохранение данных
         document.getElementById('deposit').addEventListener('change', () => {
             localStorage.setItem('deposit', document.getElementById('deposit').value);
         });
@@ -394,7 +229,7 @@
             localStorage.setItem('risk', document.getElementById('risk').value);
         });
 
-        // Calculate on Enter
+        // Расчет по Enter
         document.querySelectorAll('input').forEach(input => {
             input.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') calculateLot();
@@ -449,7 +284,7 @@
             const pips = stopDistance / selectedPipSize;
             const lotSize = riskAmount / (pips * selectedPipValue);
 
-            const direction = entryPrice > stopPrice ? 'LONG 📈' : 'SHORT 📉';
+            const direction = entryPrice > stopPrice ? 'LONG' : 'SHORT';
 
             document.getElementById('direction').textContent = direction;
             document.getElementById('riskAmount').textContent = '$' + riskAmount.toFixed(2);
@@ -471,7 +306,6 @@
             document.getElementById('results').classList.add('show');
         }
 
-        // Service Worker for PWA
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js').catch(() => {});
         }
