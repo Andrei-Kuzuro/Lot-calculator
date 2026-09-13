@@ -1,457 +1,608 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#0d0d0d">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Lot Calculator">
-  <title>Lot Calculator</title>
-  <link rel="manifest" href="./manifest.webmanifest">
-  <style>
-    :root { 
-      --bg: #0d0d0d; 
-      --card: #181818; 
-      --field: #101010; 
-      --border: #2b2b2b; 
-      --gold: #ffd700; 
-      --muted: #888; 
-      --error: #ff4444; 
-      --long: #00c853; 
-      --short: #ff1744;
-    }
-    * { 
-      box-sizing: border-box; 
-      -webkit-tap-highlight-color: transparent;
-      margin: 0;
-      padding: 0;
-    }
-    html { 
-      height: 100%;
-      width: 100%;
-      -webkit-text-size-adjust: 100%;
-      overflow: hidden;
-    }
-    body { 
-      width: 100%;
-      height: 100%;
-      min-height: 100%;
-      background: var(--bg); 
-      color: #fff; 
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      padding: 0;
-      overflow: hidden;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-    }
-    .app { 
-      width: 100%;
-      max-width: 430px;
-      background: var(--card); 
-      border-radius: 0;
-      padding: 12px 14px;
-      min-height: 100vh;
-      min-height: -webkit-fill-available;
-      display: flex; 
-      flex-direction: column;
-      position: relative;
-    }
-    h1 { 
-      font-size: 18px; 
-      margin: 0 0 2px; 
-      color: var(--gold);
-    }
-    .sub { 
-      font-size: 11px; 
-      color: var(--muted); 
-      margin: 0 0 10px; 
-    }
-    .grid2 { 
-      display: grid; 
-      grid-template-columns: 1fr 1fr; 
-      gap: 7px; 
-    }
-    .field { 
-      margin-bottom: 7px; 
-      position: relative; 
-    }
-    label { 
-      display: block; 
-      font-size: 9px; 
-      color: #777; 
-      text-transform: uppercase; 
-      letter-spacing: .35px; 
-      margin: 0 0 3px; 
-    }
-    input, select { 
-      touch-action: manipulation; 
-      width: 100%; 
-      height: 42px; 
-      background: var(--field); 
-      border: 1px solid #303030; 
-      border-radius: 7px; 
-      color: #fff; 
-      font-size: 16px; 
-      padding: 0 9px; 
-      outline: none; 
-      transition: border-color 0.2s;
-      -webkit-appearance: none;
-      appearance: none;
-    }
-    input:focus, select:focus { 
-      border-color: var(--gold); 
-      box-shadow: 0 0 0 1px var(--gold); 
-    }
-    input.input-error { 
-      border-color: var(--error); 
-      box-shadow: 0 0 0 1px var(--error); 
-    }
-    select optgroup { 
-      background: #181818; 
-      color: var(--gold); 
-      font-weight: 700; 
-    }
-    select option { 
-      background: #101010; 
-      color: #fff; 
-    }
-    .hint { 
-      font-size: 9px; 
-      color: #555; 
-      margin-top: 3px; 
-    }
-    .error-msg { 
-      font-size: 10px; 
-      color: var(--error); 
-      margin-top: 3px; 
-      display: none; 
-    }
-    .error-msg.show { 
-      display: block; 
-    }
-    button.calc { 
-      touch-action: manipulation; 
-      width: 100%; 
-      height: 44px; 
-      margin-top: 8px; 
-      margin-bottom: 20px;
-      border: 0; 
-      border-radius: 7px; 
-      background: var(--gold); 
-      color: #000; 
-      font-size: 15px; 
-      font-weight: 700; 
-      cursor: pointer;
-    }
-    button.calc:active { 
-      opacity: 0.8; 
-    }
-    .results { 
-      display: none; 
-      border-top: 1px solid #292929; 
-      margin-top: 12px; 
-      padding-top: 12px; 
-    }
-    .results.show { 
-      display: block; 
-    }
-    .results-grid { 
-      display: grid; 
-      grid-template-columns: 1fr 1fr; 
-      gap: 6px; 
-    }
-    .box { 
-      background: #101010; 
-      border: 1px solid #292929; 
-      border-radius: 8px; 
-      padding: 8px; 
-      text-align: center; 
-    }
-    .box.main { 
-      border-color: var(--gold); 
-      background: #181500; 
-      grid-column: span 2; 
-    }
-    .rlabel { 
-      font-size: 8px; 
-      color: #666; 
-      text-transform: uppercase; 
-      margin-bottom: 2px; 
-    }
-    .rvalue { 
-      font-size: 17px; 
-      font-weight: 600; 
-    }
-    .main .rvalue { 
-      font-size: 24px; 
-      color: var(--gold); 
-    }
-    .direction-badge { 
-      display: inline-block; 
-      padding: 2px 6px; 
-      border-radius: 4px; 
-      font-size: 10px; 
-      font-weight: 700; 
-      margin-bottom: 4px; 
-    }
-    .direction-badge.long { 
-      background: rgba(0, 200, 83, 0.2); 
-      color: var(--long); 
-    }
-    .direction-badge.short { 
-      background: rgba(255, 23, 68, 0.2); 
-      color: var(--short); 
-    }
-    .warning { 
-      display: none; 
-      margin-top: 8px; 
-      padding: 8px; 
-      border: 1px solid #ff8c00; 
-      border-radius: 7px; 
-      color: #ff9a00; 
-      background: #241500; 
-      font-size: 11px; 
-      text-align: center; 
-    }
-    .warning.show { 
-      display: block; 
-    }
-    
-    /* Адаптация для iPhone */
-    @supports (-webkit-touch-callout: none) {
-      .app {
-        min-height: -webkit-fill-available;
-        padding-top: max(12px, env(safe-area-inset-top));
-        padding-bottom: max(12px, env(safe-area-inset-bottom));
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0d0d0d">
+<meta name="color-scheme" content="dark">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Лот">
+<meta name="format-detection" content="telephone=no">
+<title>Lot Calculator</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+<style>
+:root {
+  --bg: #0d0d0d;
+  --card: #181818;
+  --field: #101010;
+  --gold: #ffd700;
+  --muted: #888;
+  --error: #ff4444;
+  --long: #00c853;
+  --short: #ff1744;
+}
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  margin: 0;
+  padding: 0;
+}
+html {
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  background: var(--bg);
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overscroll-behavior-y: contain;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+}
+input {
+  -webkit-user-select: text;
+  user-select: text;
+}
+.app {
+  width: 100%;
+  max-width: 430px;
+  background: var(--card);
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: max(12px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right))
+           calc(32px + env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+}
+h1 {
+  font-size: 18px;
+  margin: 0 0 2px;
+  color: var(--gold);
+}
+.sub {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 0 0 10px;
+}
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+.field {
+  margin-bottom: 7px;
+  position: relative;
+}
+.field.hidden {
+  display: none;
+}
+label {
+  display: block;
+  font-size: 10px;
+  color: #888;
+  margin: 0 0 3px;
+}
+input, select {
+  width: 100%;
+  height: 44px;
+  background: var(--field);
+  border: 1px solid #303030;
+  border-radius: 7px;
+  color: #fff;
+  font-size: 16px;
+  padding: 0 9px;
+  outline: none;
+  transition: border-color 0.2s;
+  -webkit-appearance: none;
+  appearance: none;
+  font-family: inherit;
+}
+select {
+  background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath fill='%23888' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 11px;
+  padding-right: 32px;
+}
+input:focus, select:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px var(--gold);
+}
+input.input-error {
+  border-color: var(--error);
+  box-shadow: 0 0 0 1px var(--error);
+}
+select optgroup {
+  background: #181818;
+  color: var(--gold);
+  font-weight: 700;
+}
+select option {
+  background: #101010;
+  color: #fff;
+}
+.hint {
+  font-size: 10px;
+  color: #666;
+  margin-top: 3px;
+}
+.error-msg {
+  font-size: 10px;
+  color: var(--error);
+  margin-top: 3px;
+  display: none;
+}
+.error-msg.show {
+  display: block;
+}
+button.calc {
+  width: 100%;
+  height: 46px;
+  margin-top: 8px;
+  border: 0;
+  border-radius: 7px;
+  background: var(--gold);
+  color: #000;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+}
+button.calc:active {
+  opacity: 0.8;
+}
+.results {
+  display: none;
+  border-top: 1px solid #292929;
+  margin-top: 14px;
+  padding-top: 12px;
+}
+.results.show {
+  display: block;
+}
+.results-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.box {
+  background: #101010;
+  border: 1px solid #292929;
+  border-radius: 8px;
+  padding: 8px;
+  text-align: center;
+}
+.box.main {
+  border-color: var(--gold);
+  background: #181500;
+  grid-column: span 2;
+}
+.rlabel {
+  font-size: 9px;
+  color: #777;
+  margin-bottom: 2px;
+}
+.rvalue {
+  font-size: 17px;
+  font-weight: 600;
+}
+.main .rvalue {
+  font-size: 26px;
+  color: var(--gold);
+}
+.main .rsub {
+  font-size: 10px;
+  color: #999;
+  margin-top: 3px;
+}
+.direction-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+}
+.direction-badge.long {
+  background: rgba(0, 200, 83, 0.2);
+  color: var(--long);
+}
+.direction-badge.short {
+  background: rgba(255, 23, 68, 0.2);
+  color: var(--short);
+}
+.warning {
+  display: none;
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px solid #ff8c00;
+  border-radius: 7px;
+  color: #ff9a00;
+  background: #241500;
+  font-size: 11px;
+  line-height: 1.45;
+}
+.warning.show {
+  display: block;
+}
+.warning.blocking {
+  border-color: var(--error);
+  color: #ff7a7a;
+  background: #250c0c;
+}
+.warning p + p {
+  margin-top: 5px;
+}
+.updated {
+  display: none;
+  margin-top: 10px;
+  font-size: 10px;
+  color: #666;
+  text-align: center;
+}
+.updated.show {
+  display: block;
+}
+</style>
 </head>
 <body>
-  <main class="app">
-    <h1>Калькулятор позиции</h1>
-    <p class="sub">Введи параметры — получи размер лота</p>
+<main class="app">
+  <h1>Калькулятор позиции</h1>
+  <p class="sub">Спецификации контрактов FxPro MT5</p>
 
+  <div class="field">
+    <label for="instrument">Инструмент</label>
+    <select id="instrument">
+      <optgroup label="ДРАГМЕТАЛЛЫ">
+        <option value="gold">GOLD (XAUUSD)</option>
+        <option value="silver">SILVER (XAGUSD)</option>
+        <option value="platinum">PLATINUM (XPTUSD)</option>
+      </optgroup>
+      <optgroup label="ИНДЕКСЫ">
+        <option value="usspx500">#USSPX500 (S&amp;P 500)</option>
+        <option value="usndaq100">#USNDAQ100 (Nasdaq)</option>
+        <option value="germany40">#Germany40 (DAX)</option>
+        <option value="japan225">#Japan225 (Nikkei)</option>
+      </optgroup>
+      <optgroup label="КРИПТОВАЛЮТЫ">
+        <option value="btcusd">BITCOIN (BTCUSD)</option>
+        <option value="ethusd">ETHEREUM (ETHUSD)</option>
+      </optgroup>
+      <optgroup label="ВАЛЮТНЫЕ ПАРЫ (USD в котировке)">
+        <option value="eurusd">EURUSD</option>
+        <option value="gbpusd">GBPUSD</option>
+        <option value="audusd">AUDUSD</option>
+        <option value="nzdusd">NZDUSD</option>
+      </optgroup>
+      <optgroup label="ВАЛЮТНЫЕ ПАРЫ (USD в базе)">
+        <option value="usdjpy">USDJPY</option>
+        <option value="usdcad">USDCAD</option>
+        <option value="usdchf">USDCHF</option>
+      </optgroup>
+      <optgroup label="КРОСС-ПАРЫ (нужен курс)">
+        <option value="eurgbp">EURGBP</option>
+        <option value="eurjpy">EURJPY</option>
+      </optgroup>
+    </select>
+    <div class="hint" id="spec-hint"></div>
+  </div>
+
+  <div class="grid2">
     <div class="field">
-      <label>Инструмент</label>
-      <select id="instrument">
-        <optgroup label="КРИПТОВАЛЮТЫ">
-          <option value="btcusd">BTCUSD</option>
-          <option value="ethusd">ETHUSD</option>
-        </optgroup>
-        <optgroup label="ИНДЕКСЫ">
-          <option value="us500">US500 (S&P)</option>
-          <option value="us100">US100 (Nasdaq)</option>
-          <option value="ger40">GER40 (DAX)</option>
-          <option value="japan225">JAPAN225 (Nikkei)</option>
-        </optgroup>
-        <optgroup label="ДРАГМЕТАЛЛЫ">
-          <option value="xauusd">Золото (XAUUSD)</option>
-          <option value="xagusd">Серебро (XAGUSD)</option>
-          <option value="xptusd">Платина (XPTUSD)</option>
-        </optgroup>
-        <optgroup label="ВАЛЮТНЫЕ ПАРЫ (Основные *USD)">
-          <option value="eurusd">EURUSD</option>
-          <option value="gbpusd">GBPUSD</option>
-          <option value="audusd">AUDUSD</option>
-          <option value="nzdusd">NZDUSD</option>
-        </optgroup>
-        <optgroup label="ВАЛЮТНЫЕ ПАРЫ (Кросс-пары)">
-          <option value="usdcad">USDCAD</option>
-          <option value="usdjpy">USDJPY</option>
-          <option value="usdchf">USDCHF</option>
-          <option value="eurgbp">EURGBP</option>
-          <option value="eurjpy">EURJPY</option>
-        </optgroup>
-      </select>
-      <div class="hint">Используй клавиатуру с точкой. Запятая заменится автоматически.</div>
+      <label for="deposit">Депозит ($)</label>
+      <input id="deposit" type="text" inputmode="decimal" enterkeyhint="done"
+             autocomplete="off" autocorrect="off" spellcheck="false" placeholder="1000" value="1000">
+      <div class="error-msg" id="err-deposit">Введи депозит больше нуля</div>
     </div>
+    <div class="field">
+      <label for="risk">Риск (%)</label>
+      <input id="risk" type="text" inputmode="decimal" enterkeyhint="done"
+             autocomplete="off" autocorrect="off" spellcheck="false" placeholder="2" value="2">
+      <div class="error-msg" id="err-risk">Введи процент риска больше нуля</div>
+    </div>
+  </div>
 
-    <div class="grid2">
-      <div class="field">
-        <label>Депозит ($)</label>
-        <input id="deposit" type="text" inputmode="decimal" placeholder="1000" value="1000">
-        <div class="error-msg" id="err-deposit">Введи корректный депозит</div>
+  <div class="grid2">
+    <div class="field">
+      <label for="entry">Цена входа</label>
+      <input id="entry" type="text" inputmode="decimal" enterkeyhint="done"
+             autocomplete="off" autocorrect="off" spellcheck="false" placeholder="4350.00">
+      <div class="error-msg" id="err-entry">Введи цену входа</div>
+    </div>
+    <div class="field">
+      <label for="stop">Цена стопа</label>
+      <input id="stop" type="text" inputmode="decimal" enterkeyhint="go"
+             autocomplete="off" autocorrect="off" spellcheck="false" placeholder="4345.00">
+      <div class="error-msg" id="err-stop">Введи цену стопа</div>
+    </div>
+  </div>
+
+  <div class="field hidden" id="rate-field">
+    <label for="rate" id="rate-label">Курс конвертации</label>
+    <input id="rate" type="text" inputmode="decimal" enterkeyhint="go"
+           autocomplete="off" autocorrect="off" spellcheck="false" placeholder="1.1600">
+    <div class="hint" id="rate-hint"></div>
+    <div class="error-msg" id="err-rate">Введи курс конвертации</div>
+  </div>
+
+  <button class="calc" id="calc-btn" type="button">Рассчитать лот</button>
+
+  <section class="results" id="results">
+    <div class="results-grid">
+      <div class="box">
+        <div class="rlabel">Направление</div>
+        <div class="rvalue" id="direction">—</div>
       </div>
-      <div class="field">
-        <label>Риск (%)</label>
-        <input id="risk" type="text" inputmode="decimal" placeholder="2" value="2">
-        <div class="error-msg" id="err-risk">Введи процент риска</div>
+      <div class="box">
+        <div class="rlabel">Сумма риска</div>
+        <div class="rvalue" id="riskAmount">—</div>
+      </div>
+      <div class="box">
+        <div class="rlabel">До стопа</div>
+        <div class="rvalue" id="pips">—</div>
+      </div>
+      <div class="box">
+        <div class="rlabel">Цена пункта на 1 лот</div>
+        <div class="rvalue" id="pipValue">—</div>
+      </div>
+      <div class="box main">
+        <div class="rlabel">Размер лота</div>
+        <div class="rvalue" id="lotSize">—</div>
+        <div class="rsub" id="lotSub"></div>
       </div>
     </div>
+    <div class="warning" id="warning"></div>
+  </section>
 
-    <div class="grid2">
-      <div class="field">
-        <label>Цена входа</label>
-        <input id="entry" type="text" inputmode="decimal" placeholder="1.0500">
-        <div class="error-msg" id="err-entry">Введи цену входа</div>
-      </div>
-      <div class="field">
-        <label>Цена стопа</label>
-        <input id="stop" type="text" inputmode="decimal" placeholder="1.0450">
-        <div class="error-msg" id="err-stop">Введи цену стопа</div>
-      </div>
-    </div>
+  <div class="updated" id="updated">Приложение обновлено до новой версии</div>
+</main>
 
-    <button class="calc" onclick="calculate()">Рассчитать лот</button>
+<script>
+/* Спецификации сверены по FxPro MT5 (спецификации инструментов, сентябрь 2026).
+   contract — размер лота в единицах инструмента
+   pip      — «размер пипса» из спецификации, только для отображения
+   quote    — валюта прибыли: USD | BASE_USD (USD в базе) | EUR | GBP | JPY
+   stopLvl  — минимальная дистанция стопа в единицах цены
+   Риск на лот = |вход − стоп| × contract в валюте котировки, затем в USD.
+   Через pip лот не считается. */
+const instruments = {
+  gold:      { label: 'GOLD',       contract: 100,    pip: 0.01,   quote: 'USD',      stopLvl: 0,    maxLot: 500, spec: '100 Oz · пункт $1' },
+  silver:    { label: 'SILVER',     contract: 5000,   pip: 0.01,   quote: 'USD',      stopLvl: 0.02, maxLot: 500, spec: '5000 Oz · пункт $50' },
+  platinum:  { label: 'PLATINUM',   contract: 100,    pip: 0.01,   quote: 'USD',      stopLvl: 4,    maxLot: 500, spec: '100 Oz · пункт $1 · мин. стоп $4.00' },
+  usspx500:  { label: '#USSPX500',  contract: 1,      pip: 0.01,   quote: 'USD',      stopLvl: 0.5,  maxLot: 500, spec: '1 Index · пункт индекса $1' },
+  usndaq100: { label: '#USNDAQ100', contract: 1,      pip: 0.01,   quote: 'USD',      stopLvl: 0.5,  maxLot: 500, spec: '1 Index · сверь спецификацию' },
+  germany40: { label: '#Germany40', contract: 1,      pip: 0.01,   quote: 'EUR',      stopLvl: 1,    maxLot: 500, spec: '1 Index · пункт €1 · прибыль в EUR' },
+  japan225:  { label: '#Japan225',  contract: 1,      pip: 0.01,   quote: 'USD',      stopLvl: 0.1,  maxLot: 500, spec: '1 Index · пункт индекса $1' },
+  btcusd:    { label: 'BITCOIN',    contract: 1,      pip: 0.01,   quote: 'USD',      stopLvl: 200,  maxLot: 500, spec: '1 BTC · пункт $0.01 · мин. стоп $200' },
+  ethusd:    { label: 'ETHEREUM',   contract: 1,      pip: 0.01,   quote: 'USD',      stopLvl: 12.5, maxLot: 500, spec: '1 ETH · пункт $0.01 · мин. стоп $12.50' },
+  eurusd:    { label: 'EURUSD',     contract: 100000, pip: 0.0001, quote: 'USD',      stopLvl: 0,    maxLot: 500, spec: '100 000 · пипс $10' },
+  gbpusd:    { label: 'GBPUSD',     contract: 100000, pip: 0.0001, quote: 'USD',      stopLvl: 0,    maxLot: 500, spec: '100 000 · пипс $10' },
+  audusd:    { label: 'AUDUSD',     contract: 100000, pip: 0.0001, quote: 'USD',      stopLvl: 0,    maxLot: 500, spec: '100 000 · пипс $10' },
+  nzdusd:    { label: 'NZDUSD',     contract: 100000, pip: 0.0001, quote: 'USD',      stopLvl: 0,    maxLot: 500, spec: '100 000 · пипс $10' },
+  usdjpy:    { label: 'USDJPY',     contract: 100000, pip: 0.01,   quote: 'BASE_USD', stopLvl: 0,    maxLot: 500, spec: '100 000 USD · пипс = 1000 JPY ÷ цену' },
+  usdcad:    { label: 'USDCAD',     contract: 100000, pip: 0.0001, quote: 'BASE_USD', stopLvl: 0,    maxLot: 500, spec: '100 000 USD · пипс = 10 CAD ÷ цену' },
+  usdchf:    { label: 'USDCHF',     contract: 100000, pip: 0.0001, quote: 'BASE_USD', stopLvl: 0,    maxLot: 500, spec: '100 000 USD · пипс = 10 CHF ÷ цену' },
+  eurgbp:    { label: 'EURGBP',     contract: 100000, pip: 0.0001, quote: 'GBP',      stopLvl: 0,    maxLot: 500, spec: '100 000 EUR · пипс = 10 GBP' },
+  eurjpy:    { label: 'EURJPY',     contract: 100000, pip: 0.01,   quote: 'JPY',      stopLvl: 0,    maxLot: 500, spec: '100 000 EUR · пипс = 1000 JPY' }
+};
 
-    <section class="results" id="results">
-      <div class="results-grid">
-        <div class="box">
-          <div class="rlabel">Направление</div>
-          <div class="rvalue" id="direction">—</div>
-        </div>
-        <div class="box">
-          <div class="rlabel">Сумма риска</div>
-          <div class="rvalue" id="riskAmount">—</div>
-        </div>
-        <div class="box">
-          <div class="rlabel">До стопа</div>
-          <div class="rvalue" id="pips">—</div>
-        </div>
-        <div class="box">
-          <div class="rlabel">Цена пункта</div>
-          <div class="rvalue" id="pipValue">—</div>
-        </div>
-        <div class="box main">
-          <div class="rlabel">Размер лота</div>
-          <div class="rvalue" id="lotSize">—</div>
-        </div>
-      </div>
-      <div class="warning" id="warning"></div>
-    </section>
-  </main>
+const MIN_LOT = 0.01;
+const LOT_STEP = 0.01;
 
-  <script>
-    const num = (id) => parseFloat(document.getElementById(id).value.replace(',', '.')) || 0;
-    const hideKeyboard = () => { document.activeElement.blur(); };
+const rateInfo = {
+  EUR: { name: 'EURUSD', hint: 'Сколько долларов за 1 евро, например 1.1600' },
+  GBP: { name: 'GBPUSD', hint: 'Сколько долларов за 1 фунт, например 1.3513' },
+  JPY: { name: 'USDJPY', hint: 'Сколько йен за 1 доллар, например 153.59' }
+};
 
-    const instruments = {
-      btcusd: { pipSize: 0.01, pipValue: 1, unit: 'пунктов' },
-      ethusd: { pipSize: 0.01, pipValue: 1, unit: 'пунктов' },
-      us500: { pipSize: 1, pipValue: 1, unit: 'пунктов' },
-      us100: { pipSize: 1, pipValue: 1, unit: 'пунктов' },
-      ger40: { pipSize: 1, pipValue: 1, unit: 'пунктов' },
-      japan225: { pipSize: 1, pipValue: 1, unit: 'пунктов' },
-      xauusd: { pipSize: 0.01, pipValue: 1, unit: 'пунктов' },
-      xagusd: { pipSize: 0.001, pipValue: 5, unit: 'пунктов' },
-      xptusd: { pipSize: 0.01, pipValue: 1, unit: 'пунктов' },
-      eurusd: { pipSize: 0.0001, pipValue: 10, unit: 'пипсов' },
-      gbpusd: { pipSize: 0.0001, pipValue: 10, unit: 'пипсов' },
-      audusd: { pipSize: 0.0001, pipValue: 10, unit: 'пипсов' },
-      nzdusd: { pipSize: 0.0001, pipValue: 10, unit: 'пипсов' },
-      usdcad: { pipSize: 0.0001, pipValue: 10, unit: 'пипсов' },
-      usdjpy: { pipSize: 0.01, pipValue: 10, unit: 'пипсов' },
-      usdchf: { pipSize: 0.0001, pipValue: 10, unit: 'пипсов' },
-      eurgbp: { pipSize: 0.0001, pipValue: 10, unit: 'пипсов' },
-      eurjpy: { pipSize: 0.01, pipValue: 10, unit: 'пипсов' }
-    };
+const el = (id) => document.getElementById(id);
 
-    document.querySelectorAll('input').forEach(input => {
-      if (input.id === 'deposit' || input.id === 'risk') {
-        const saved = localStorage.getItem(input.id);
-        if (saved) input.value = saved;
-      }
+function num(id) {
+  const raw = el(id).value.replace(/,/g, '.').replace(/\s/g, '');
+  const v = parseFloat(raw);
+  return Number.isFinite(v) ? v : 0;
+}
 
-      input.addEventListener('input', function() {
-        const oldValue = this.value;
-        const normalized = oldValue.replace(/,/g, '.');
-        if (normalized !== oldValue) {
-          const pos = this.selectionStart;
-          this.value = normalized;
-          if (pos !== null) this.setSelectionRange(pos, pos);
-        }
-        if (this.id === 'deposit' || this.id === 'risk') {
-          localStorage.setItem(this.id, this.value);
-        }
-        this.classList.remove('input-error');
-        document.getElementById('err-' + this.id).classList.remove('show');
-      });
+function store(key, value) {
+  try { localStorage.setItem(key, value); } catch (e) {}
+}
 
-      input.addEventListener('paste', function() {
-        setTimeout(() => {
-          this.value = this.value.replace(/,/g, '.');
-          if (this.id === 'deposit' || this.id === 'risk') localStorage.setItem(this.id, this.value);
-        }, 0);
-      });
-    });
+function recall(key) {
+  try { return localStorage.getItem(key); } catch (e) { return null; }
+}
 
-    document.addEventListener('gesturestart', e => e.preventDefault(), {passive: false});
-    document.addEventListener('gesturechange', e => e.preventDefault(), {passive: false});
-    document.addEventListener('gestureend', e => e.preventDefault(), {passive: false});
+/* Сколько долларов в одной единице валюты котировки */
+function usdPerQuote(inst, entry, rate) {
+  switch (inst.quote) {
+    case 'USD':      return 1;
+    case 'BASE_USD': return 1 / entry;
+    case 'EUR':      return rate;
+    case 'GBP':      return rate;
+    case 'JPY':      return 1 / rate;
+  }
+}
 
-    function calculate() {
-      hideKeyboard();
-      clearErrors();
+function decimalsFor(pip) {
+  return pip < 0.001 ? 5 : (pip < 0.01 ? 4 : 2);
+}
 
-      const instrumentKey = document.getElementById('instrument').value;
-      const deposit = num('deposit');
-      const riskPct = num('risk');
-      const entry = num('entry');
-      const stop = num('stop');
+function syncInstrument() {
+  const key = el('instrument').value;
+  const inst = instruments[key];
+  store('instrument', key);
+  el('spec-hint').textContent = inst.spec;
+  const info = rateInfo[inst.quote];
+  if (info) {
+    el('rate-field').classList.remove('hidden');
+    el('rate-label').textContent = 'Курс ' + info.name;
+    el('rate-hint').textContent = info.hint;
+    el('rate').value = recall('rate_' + info.name) || '';
+  } else {
+    el('rate-field').classList.add('hidden');
+  }
+}
 
-      let hasError = false;
-      if (!deposit || deposit <= 0) { showError('deposit'); hasError = true; }
-      if (!riskPct || riskPct <= 0) { showError('risk'); hasError = true; }
-      if (!entry || entry <= 0) { showError('entry'); hasError = true; }
-      if (!stop || stop <= 0) { showError('stop'); hasError = true; }
-      
-      if (hasError) return;
-      if (Math.abs(entry - stop) < 1e-12) {
-        alert('Цена входа и стопа не могут быть одинаковыми');
-        return;
-      }
+function showError(id) {
+  el(id).classList.add('input-error');
+  const msg = el('err-' + id);
+  if (msg) msg.classList.add('show');
+}
 
-      const inst = instruments[instrumentKey];
-      const riskAmount = deposit * (riskPct / 100);
-      const pips = Math.abs(entry - stop) / inst.pipSize;
-      const lot = riskAmount / (pips * inst.pipValue);
-      const isLong = entry > stop;
+function clearErrors() {
+  document.querySelectorAll('.input-error').forEach(e => e.classList.remove('input-error'));
+  document.querySelectorAll('.error-msg').forEach(e => e.classList.remove('show'));
+}
 
-      document.getElementById('direction').innerHTML = `<span class="direction-badge ${isLong ? 'long' : 'short'}">${isLong ? 'LONG' : 'SHORT'}</span>`;
-      document.getElementById('riskAmount').textContent = '$' + riskAmount.toFixed(2);
-      document.getElementById('pips').textContent = pips.toFixed(1) + ' ' + inst.unit;
-      document.getElementById('pipValue').textContent = '$' + (inst.pipValue * lot).toFixed(2);
-      document.getElementById('lotSize').textContent = lot.toFixed(3);
+function calculate() {
+  if (document.activeElement) document.activeElement.blur();
+  clearErrors();
 
-      const w = document.getElementById('warning');
-      if (lot < 0.001) {
-        w.textContent = '⚠️ Слишком маленький лот. Уменьши стоп или увеличь депозит.';
-        w.classList.add('show');
-      } else if (lot > 10) {
-        w.textContent = '⚠️ Очень большой лот. Проверь правильность введенных данных.';
-        w.classList.add('show');
-      } else {
-        w.classList.remove('show');
-      }
+  const inst = instruments[el('instrument').value];
+  const deposit = num('deposit');
+  const riskPct = num('risk');
+  const entry = num('entry');
+  const stop = num('stop');
+  const needsRate = !!rateInfo[inst.quote];
+  const rate = needsRate ? num('rate') : 1;
 
-      document.getElementById('results').classList.add('show');
+  let bad = false;
+  if (deposit <= 0) { showError('deposit'); bad = true; }
+  if (riskPct <= 0) { showError('risk'); bad = true; }
+  if (entry <= 0) { showError('entry'); bad = true; }
+  if (stop <= 0) { showError('stop'); bad = true; }
+  if (needsRate && rate <= 0) { showError('rate'); bad = true; }
+  if (bad) return;
+
+  const dist = Math.abs(entry - stop);
+  const w = el('warning');
+  w.className = 'warning';
+
+  if (dist < inst.pip / 10) {
+    showError('entry');
+    showError('stop');
+    el('lotSize').textContent = '—';
+    el('lotSub').textContent = '';
+    w.innerHTML = '<p>Вход и стоп совпадают. Разведи их хотя бы на один пункт.</p>';
+    w.classList.add('show', 'blocking');
+    el('results').classList.add('show');
+    return;
+  }
+
+  if (needsRate) store('rate_' + rateInfo[inst.quote].name, el('rate').value);
+
+  const riskAmount = deposit * riskPct / 100;
+  const mult = usdPerQuote(inst, entry, rate);
+  const riskPerLot = dist * inst.contract * mult;
+  const pipValuePerLot = inst.pip * inst.contract * mult;
+  const lotRaw = riskAmount / riskPerLot;
+  const lot = Math.floor(lotRaw / LOT_STEP) * LOT_STEP;
+  const isLong = entry > stop;
+  const d = decimalsFor(inst.pip);
+
+  el('direction').innerHTML = '<span class="direction-badge ' + (isLong ? 'long">LONG' : 'short">SHORT') + '</span>';
+  el('riskAmount').textContent = '$' + riskAmount.toFixed(2);
+  el('pips').textContent = dist.toFixed(d) + ' (' + Math.round(dist / inst.pip) + ' п.)';
+  el('pipValue').textContent = '$' + pipValuePerLot.toFixed(pipValuePerLot < 1 ? 4 : 2);
+
+  const notes = [];
+
+  if (lot < MIN_LOT) {
+    el('lotSize').textContent = '—';
+    el('lotSub').textContent = 'меньше минимального объёма 0.01';
+    notes.push('Минимальный лот 0.01 при стопе ' + dist.toFixed(d) + ' стоил бы $' +
+               (MIN_LOT * riskPerLot).toFixed(2) + '. Это больше риска в $' + riskAmount.toFixed(2) +
+               '. Нужен стоп короче или депозит больше.');
+    w.classList.add('blocking');
+  } else {
+    const shown = Math.min(lot, inst.maxLot);
+    const actualRisk = shown * riskPerLot;
+    el('lotSize').textContent = shown.toFixed(2);
+    el('lotSub').textContent = 'риск $' + actualRisk.toFixed(2) +
+                               ' (' + (actualRisk / deposit * 100).toFixed(2) + '% депозита)';
+    if (lot > inst.maxLot) {
+      notes.push('Расчётный лот ' + lot.toFixed(2) + ' выше максимального объёма ' +
+                 inst.maxLot + '. Показан максимум.');
     }
-
-    function showError(fieldId) {
-      document.getElementById(fieldId).classList.add('input-error');
-      document.getElementById('err-' + fieldId).classList.add('show');
+    if (riskAmount - actualRisk > 0.005) {
+      notes.push('Лот округлён вниз до шага 0.01, поэтому фактический риск на $' +
+                 (riskAmount - actualRisk).toFixed(2) + ' меньше запланированного.');
     }
+  }
 
-    function clearErrors() {
-      document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
-      document.querySelectorAll('.error-msg').forEach(el => el.classList.remove('show'));
+  if (inst.stopLvl > 0 && dist < inst.stopLvl) {
+    notes.push('Уровень стопов по ' + inst.label + ' — ' + inst.stopLvl.toFixed(d) +
+               '. Стоп в ' + dist.toFixed(d) + ' терминал не примет.');
+    w.classList.add('blocking');
+  }
+
+  notes.push('Спред и комиссия в расчёт не входят — фактический убыток по стопу будет чуть больше.');
+
+  w.innerHTML = notes.map(n => '<p>' + n + '</p>').join('');
+  w.classList.add('show');
+  el('results').classList.add('show');
+}
+
+/* Ввод: запятая в точку, сохранение депозита и риска */
+document.querySelectorAll('input').forEach(input => {
+  if (input.id === 'deposit' || input.id === 'risk') {
+    const saved = recall(input.id);
+    if (saved) input.value = saved;
+  }
+  const normalize = function () {
+    const pos = this.selectionStart;
+    const fixed = this.value.replace(/,/g, '.');
+    if (fixed !== this.value) {
+      this.value = fixed;
+      if (pos !== null) { try { this.setSelectionRange(pos, pos); } catch (e) {} }
     }
+    if (this.id === 'deposit' || this.id === 'risk') store(this.id, this.value);
+    this.classList.remove('input-error');
+    const msg = el('err-' + this.id);
+    if (msg) msg.classList.remove('show');
+  };
+  input.addEventListener('input', normalize);
+  input.addEventListener('paste', function () { setTimeout(normalize.bind(this), 0); });
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); calculate(); } });
+});
 
-    document.addEventListener('keydown', e => { if (e.key === 'Enter') calculate(); });
+el('calc-btn').addEventListener('click', calculate);
+el('instrument').addEventListener('change', syncInstrument);
+document.addEventListener('gesturestart', e => e.preventDefault(), { passive: false });
 
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration failed', err));
-      });
+const lastInstrument = recall('instrument');
+if (lastInstrument && instruments[lastInstrument]) el('instrument').value = lastInstrument;
+syncInstrument();
+
+/* Service worker: обновляется сам, без переустановки приложения */
+if ('serviceWorker' in navigator) {
+  let reloading = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (reloading) return;
+    reloading = true;
+    el('updated').classList.add('show');
+    setTimeout(() => location.reload(), 300);
+  });
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').then(reg => {
+      reg.update();
+      setInterval(() => reg.update(), 60 * 60 * 1000);
+    }).catch(() => {});
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      navigator.serviceWorker.getRegistration().then(reg => { if (reg) reg.update(); }).catch(() => {});
     }
-  </script>
+  });
+}
+</script>
 </body>
 </html>
